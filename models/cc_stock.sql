@@ -1,6 +1,30 @@
+WITH cc_sales_products AS (
+    SELECT * FROM {{ ref('cc_sales_products') }}
+  ),
+stg_cc_stock AS (
+  SELECT
+    ### Key ###
+    CONCAT(model,"_",color,"_",IFNULL(size,"no-size")) AS product_id 
+    ###########
+    ,model
+    ,color
+    ,size
+    -- name
+    ,model_name
+    ,color_name
+    ,CONCAT(model_name," ",color_name,IF(size IS NULL,"",CONCAT(" - Taille ",size))) AS product_name
+    -- product info --
+    ,t.new AS pdt_new
+    -- stock metrics --
+    ,forecast_stock
+    ,stock
+    -- value
+    ,price
+  FROM `raw_data_circle.raw_cc_stock` t
+)
 SELECT
   ### Key ###
-  CONCAT(model,"_",color,"_",IFNULL(size,"no-size")) AS product_id 
+  product_id 
   ###########
   ,model
   ,color
@@ -18,9 +42,9 @@ SELECT
   -- name
   ,model_name
   ,color_name
-  ,CONCAT(model_name," ",color_name,IF(size IS NULL,"",CONCAT(" - Taille ",size))) AS product_name
+  ,product_name
   -- product info --
-  ,t.new AS pdt_new
+  ,pdt_new
   -- stock metrics --
   ,forecast_stock
   ,stock
@@ -28,6 +52,10 @@ SELECT
 	-- value
   ,price
 	,IF(stock<0,NULL,ROUND(stock*price,2)) AS stock_value
-FROM `raw_data_circle.raw_cc_stock` t
+  -- nb days --
+  ,d.avg_daily_qty_91
+  ,SAFE_DIVIDE(t.stock,d.avg_daily_qty_91) AS nb_day_stock
+FROM stg_cc_stock t
+LEFT JOIN cc_sales_products d USING (product_id)
 WHERE TRUE
 ORDER BY product_id
