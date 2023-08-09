@@ -1,3 +1,5 @@
+{{ config(schema='transaction') }}
+
 WITH
     ship  AS (SELECT * FROM {{ref('gz_stg_ship')}})
     , sales AS (SELECT * FROM {{ref('gz_stg_sales')}})
@@ -6,9 +8,9 @@ WITH
         SELECT
             orders_id
             ,date_date
-            ,SUM(turnover) AS turnover
-            ,SUM(purchase_cost) AS purchase_cost
-            ,SUM(pdt_margin) AS product_margin
+            ,ROUND(SUM(turnover),2) AS turnover
+            ,ROUND(SUM(purchase_cost),2) AS purchase_cost
+            ,ROUND(SUM(pdt_margin),2) AS product_margin
         FROM sales
         GROUP BY
             orders_id
@@ -34,7 +36,7 @@ WITH
     ,operational_margin AS (
         SELECT
         *
-        ,product_margin + shipping_fee - ship_cost - log_cost AS operational_margin 
+        ,ROUND(product_margin + shipping_fee - ship_cost - log_cost,2) AS operational_margin 
     FROM orders_from_sales
     LEFT JOIN ship USING (orders_id)
     )
