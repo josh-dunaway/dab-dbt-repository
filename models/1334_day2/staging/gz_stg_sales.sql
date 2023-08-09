@@ -1,10 +1,13 @@
 --{{ config(schema='staging') }}
 
 SELECT
-  date_date
-  ,orders_id
-  ,pdt_id AS products_id
-  ,revenue AS turnover
-  ,quantity AS qty
-FROM `gz_raw_data.raw_gz_sales`
+  sales.date_date
+  ,sales.orders_id
+  ,sales.pdt_id AS products_id
+  ,sales.revenue AS turnover
+  ,sales.quantity AS qty
+  ,sales.quantity * product.purchase_price AS purchase_cost
+  ,sales.revenue - (sales.quantity * product.purchase_price) AS pdt_margin
+FROM `gz_raw_data.raw_gz_sales` sales
+LEFT JOIN {{ref('gz_stg_product')}} product ON (product.products_id = sales.pdt_id)
 WHERE revenue > 0
