@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: sales
+    description: >
+      One line per sale 
+      - combination of raw_gz_sales and raw_gz_product
+    tests:
+      - unique:
+          column_name: "(orders_id || '-' || products_id)"        
+    columns:
+      ### PK ###
+        - name: orders_id
+          description: composite PK with products_id - order number for sale
+          tests : 
+          - not_null 
+        - name: products_id
+          description: composite PK with orders_id - product id(s) of the order       
+          tests : 
+          - not_null
+      ##########
+        - name: qty
+        - name: turnover
+          description: money made before costs
+          tests : 
+          - not_null         
+        - name: purchase_cost
+          description: cost to acquire goods
+          tests : 
+          - not_null         
+        - name: margin
+          description: turnover minus purchase_cost
