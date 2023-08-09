@@ -2,25 +2,25 @@
 
 WITH 
 
-    sales AS (SELECT * FROM `gz_raw_data.raw_gz_sales`)
+    sales AS (SELECT * FROM {{ref('gz_stg_sales')}})
 
-    ,product AS (SELECT * FROM `gz_raw_data.raw_gz_product`)
+    ,product AS (SELECT * FROM {{ref('gz_stg_product')}})
 
 SELECT
     s.date_date
     ### Key ###
     ,s.orders_id
-    ,s.pdt_id AS products_id
+    ,s.products_id AS products_id
     ###########
     -- qty --
-    ,s.quantity AS qty
+    ,s.qty AS qty
     -- revenue --
-    ,s.revenue AS turnover
+    ,s.turnover AS turnover
     -- cost --
-    ,CAST(p.purchSE_PRICE AS FLOAT64) AS purchase_price
-    ,ROUND(s.quantity*CAST(p.purchSE_PRICE AS FLOAT64),2) AS purchase_cost
+    ,CAST(p.purchase_price AS FLOAT64) AS purchase_price
+    ,ROUND(s.qty*CAST(p.purchase_price AS FLOAT64),2) AS purchase_cost
     -- margin --
-    ,{{margin('s.revenue','s.quantity*CAST(p.purchSE_PRICE AS FLOAT64)')}} AS margin
-    ,{{margin_percent('s.revenue','s.quantity*CAST(p.purchSE_PRICE AS FLOAT64)')}} AS margin_percent
+    ,{{margin('s.turnover','s.qty*CAST(p.purchase_price AS FLOAT64)')}} AS margin
+    ,{{margin_percent('s.turnover','s.qty*CAST(p.purchase_price AS FLOAT64)')}} AS margin_percent
 FROM sales s
-INNER JOIN product p ON s.pdt_id = p.products_id
+INNER JOIN product p ON s.products_id = p.products_id
